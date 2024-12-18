@@ -1,27 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <IsPackable>true</IsPackable>
-
         <TargetFramework>net472</TargetFramework>
         <LangVersion>preview</LangVersion>
 
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <NoWarn>$(NoWarn);CS0436</NoWarn>
+        <!-- NU5100: Assembly is not inside 'lib' folder -->
+        <NoWarn>$(NoWarn);CS0436;NU5100</NoWarn>
 
         <RootNamespace>NeuroSdk</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- release = publish -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <IsPackable>true</IsPackable>
+        <NoBuild>true</NoBuild>
+        <NoRestore>true</NoRestore>
+        <NuspecFile>VedalAI.NeuroSdk.Unity.nuspec</NuspecFile>
+    </PropertyGroup>
+
+    <!-- debug = check in IDE that it compiles without errors -->
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
         <PackageReference Include="UnityEngine.Modules" Version="2019.4.24" />
         <Reference Include="Dependencies/endel.nativewebsocket.dll" />
         <Reference Include="Dependencies/UniTask.dll" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Compile Include="..\Assets\**\*.cs" />
         <Compile Remove="..\Assets\Examples\*.cs" />
     </ItemGroup>
 
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <Compile Remove="Example\**\*" />
+        <Folder Remove="Example\**\*" />
+    </ItemGroup>
 </Project>

@@ -1,0 +1,10 @@
+<Project>
+    <Import Project="$(MSBuildThisFileDirectory)/VedalAI.NeuroSdk.Unity.targets" />
+    <ItemGroup>
+        <Compile Update="@(Compile)">
+            <Visible Condition="'%(NugetItemType)' == 'Compile' and '%(NuGetPackageId)' == 'VedalAI.NeuroSdk.Unity'">false</Visible>
+        </Compile>
+        <EmbeddedResource Include="$(MSBuildThisFileDirectory)/../_res/*.dll" Visible="false" />
+        <Reference Include="$(MSBuildThisFileDirectory)/../_res/*.dll" />
+    </ItemGroup>
+</Project>

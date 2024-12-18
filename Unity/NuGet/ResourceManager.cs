@@ -8,9 +8,9 @@ using System.Reflection;
 
 namespace NeuroSdk.Resources
 {
-    public static class ResourceManager
+    internal static class ResourceManager
     {
-        public static void InjectAssemblies()
+        internal static void InjectAssemblies()
         {
             AppDomain.CurrentDomain.AssemblyResolve += (_, args) => GetAssembly(new AssemblyName(args.Name).Name);
         }
