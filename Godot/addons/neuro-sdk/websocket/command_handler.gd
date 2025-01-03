@@ -13,6 +13,8 @@ func register_all() -> void:
 	dir.list_dir_begin()
 	var file_name := dir.get_next()
 	while file_name != "":
+		if file_name.ends_with(".remap"):
+			file_name = file_name.trim_suffix(".remap")
 		if file_name.ends_with(".gd"):
 			var script_path := INCOMING_MESSAGES_FOLDER + file_name
 			var script = load(script_path)
