@@ -198,3 +198,41 @@ else Failure
     end
 end
 ```
+
+## Signals
+
+There a few signals built-in to the `Websocket` autoload you can use to know when Neuro connects or disconnects:
+
+* `Websocket.connected`
+
+* `Websocket.failed_to_connect(error: Error)`
+
+* `Websocket.disconnected(code: Code)`
+
+
+Keep in mind the `connected` signal is emitted as soon as the `Websocket` autoload can connect, which may be before non-autoload nodes are ready. If you need to check the connection after this point, you can simply check the `websocket_is_connected` bool.
+
+Since the Websocket has an autoload class name, you can connect to it from any script:
+
+```py
+# Some Node
+# ...
+func _ready() -> void:
+    if Websocket.websocket_is_connected:
+        neuro_connected()
+
+    Websocket.disconnected.connect(neuro_disconnected)
+    
+func neuro_connected() -> void:
+    print("Neuro is connected! Yipee!")
+
+	# Enable related features
+
+func neuro_disconnected(code: int) -> void:
+    push_warning("Neuro disconnected with code %d!" % code)
+
+    # Disable related features
+
+func neuro_failed_to_connect(err: Error) -> void:
+    push_warning("Neuro failed to connect with error: %s!" % str(err))
+```

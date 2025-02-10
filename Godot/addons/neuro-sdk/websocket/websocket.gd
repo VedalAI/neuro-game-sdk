@@ -2,7 +2,7 @@ extends Node
 
 
 signal connected
-signal connection_failed(reason: String)
+signal connection_failed(error: Error)
 signal disconnected(code: int)
 
 const POLL_INTERVAL := 1.0 / 30.0
@@ -13,7 +13,7 @@ var _message_queue := MessageQueue.new()
 var _command_handler: CommandHandler
 
 var _elapsed_time := 0.0
-var _was_connected: bool = false
+var websocket_is_connected: bool = false
 
 
 func _enter_tree() -> void:
@@ -44,17 +44,18 @@ func _process(delta) -> void:
 			_ws_read()
 			_ws_write()
 
-			if not _was_connected:
-				_was_connected = true
+			if not websocket_is_connected:
+				websocket_is_connected = true
 				connected.emit()
 
 		WebSocketPeer.STATE_CLOSED:
 			var code: int = _socket.get_close_code()
-			push_warning("Websocket closed with code: %d" % [code])
+			push_warning("Websocket closed with code: %d" % code)
 			_ws_reconnect()
 
-			_was_connected = false
-			disconnected.emit(code)
+			if websocket_is_connected:
+				websocket_is_connected = false
+				disconnected.emit(code)
 
 
 func _ws_start() -> void:
@@ -72,7 +73,7 @@ func _ws_start() -> void:
 
 	_socket = WebSocketPeer.new() # idk if i can reuse the same one
 
-	var err: int = _socket.connect_to_url(ws_url)
+	var err: Error = _socket.connect_to_url(ws_url)
 	if err != OK:
 		push_warning("Could not connect to websocket, error code %d" % [err])
 		_ws_reconnect()
