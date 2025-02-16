@@ -1,16 +1,18 @@
 ﻿#nullable enable
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
+using NeuroSdk.Il2Cpp;
 using NeuroSdk.Messages.Outgoing;
 using NeuroSdk.Websocket;
 using UnityEngine;
 
 namespace NeuroSdk.Actions
 {
-    [PublicAPI]
+#pragma warning disable CS0618 // Type or member is obsolete
+    [RegisterInIl2Cpp]
+#pragma warning restore CS0618 // Type or member is obsolete
     public sealed class NeuroActionHandler : MonoBehaviour
     {
         private static List<INeuroAction> _currentlyRegisteredActions = new();
@@ -42,15 +44,16 @@ namespace NeuroSdk.Actions
 
             _currentlyRegisteredActions.RemoveAll(actionsToRemove.Contains);
             _dyingActions.AddRange(actionsToRemove);
-            removeActions().Forget();
 
-            WebsocketConnection.Instance!.Send(new ActionsUnregister(removeActionsList));
+            WebsocketConnection connection = WebsocketConnection.Instance!;
+            connection.StartCoroutine(removeActions());
+            connection.Send(new ActionsUnregister(removeActionsList));
 
             return;
 
-            async UniTask removeActions()
+            IEnumerator removeActions()
             {
-                await UniTask.Delay(10000);
+                yield return new WaitForSeconds(10);
                 _dyingActions.RemoveAll(actionsToRemove.Contains);
             }
         }

@@ -1,0 +1,17 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mono", "Mono\Mono.csproj", "{709249B7-7221-40DA-91D2-393E3084FFB5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Il2Cpp", "Il2Cpp\Il2Cpp.csproj", "{F65569FC-1035-4477-BB8C-FB24DBE0CF4A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{709249B7-7221-40DA-91D2-393E3084FFB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{709249B7-7221-40DA-91D2-393E3084FFB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F65569FC-1035-4477-BB8C-FB24DBE0CF4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F65569FC-1035-4477-BB8C-FB24DBE0CF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+EndGlobal
