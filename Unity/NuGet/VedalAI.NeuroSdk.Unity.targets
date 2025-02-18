@@ -1,15 +1,53 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Target Name="PreRestoreEnsureUnityReference" BeforeTargets="CoreCompile;Restore;CollectPackagesForRestore">
         <PropertyGroup>
-            <HasUnityReference Condition="'%(PackageReference.Identity)' == 'UnityEngine.Modules'">true</HasUnityReference>
+            <NeuroSdk_UnityReference>None</NeuroSdk_UnityReference>
+            <NeuroSdk_UnityReference Condition="'%(PackageReference.Identity)' == 'UnityEngine.Modules'">Mono</NeuroSdk_UnityReference>
+            <NeuroSdk_UnityReference Condition="$([System.String]::Copy(%(PackageReference.Identity)).Contains('IL2CPP'))">IL2CPP</NeuroSdk_UnityReference>
         </PropertyGroup>
-        <ItemGroup Condition="'$(HasUnityReference)' != 'true'">
+        <ItemGroup Condition="'$(NeuroSdk_UnityReference)' == 'None'">
             <!-- fallback to prevent the user getting spammed with errors from code that isn't theirs -->
             <Compile Remove="@(Compile)"
                      Condition="'%(Compile.NuGetPackageId)' == 'VedalAI.NeuroSdk.Unity'" />
         </ItemGroup>
-        <Error Condition="'$(HasUnityReference)' != 'true'"
-               Text="This SDK depends on Unity. Please add a PackageReference to any version of UnityEngine.Modules to your project.
-To override this check (e.g. if you are referencing Unity dlls directly from disk), set the HasUnityReference property to true in a PropertyGroup in your project." />
+        <Error Condition="'$(NeuroSdk_UnityReference)' == 'None'"
+               Code="MISSING_UNITY_REFERENCE"
+               Text="This SDK depends on Unity. Please add the required references to your project.
+
+Mods for Unity Mono games require a PackageReference to UnityEngine.Modules.
+Mods for Unity IL2CPP games instead require a PackageReference to BepInEx.Unity.IL2CPP and the game's GameLibs (e.g. CoreKeeper.GameLibs).
+
+To override this check (e.g. if you are referencing Unity dlls directly from disk), set the 'NeuroSdk_UnityReference' property to 'Custom' in a PropertyGroup in your project." />
+    </Target>
+
+    <Target Name="RemoveConflictingGameLibs" BeforeTargets="CoreCompile"
+            Condition="'$(NeuroSdk_UnityReference)' == 'IL2CPP' And @(_NeuroSdk_Dependencies) != ''">
+        <ItemGroup>
+            <!-- https://stackoverflow.com/a/18032552
+            tldr: if you reference two ItemGroups at the same time, they're iterated separately (A with empty, then empty with B)
+            -->
+            <__CrossJoin Include="@(ReferencePathWithRefAssemblies)">
+                <__NeuroSdkDependency>%(_NeuroSdk_Dependencies.Identity)</__NeuroSdkDependency>
+            </__CrossJoin>
+            <_Duplicates Include="@(__CrossJoin)"
+                         Condition="'%(__CrossJoin.Extension)' == '.dll'
+                                    And '%(__CrossJoin.Filename)' == '%(__CrossJoin.__NeuroSdkDependency)'
+                                    And $([System.String]::Copy('%(__CrossJoin.Identity)').Contains('game-libs'))" />
+            <ReferencePathWithRefAssemblies Remove="@(_Duplicates)" />
+        </ItemGroup>
+        <Message Text="Removing BepInEx reference game libraries due to conflicts with the Neuro SDK dependencies:"
+                 Importance="high" Condition="@(_Duplicates) != ''" />
+        <Message Text="- %(_Duplicates.__NeuroSdkDependency) (%(_Duplicates.Identity))"
+                 Importance="high" Condition="@(_Duplicates) != ''" />
+        <Message Text="If this causes issues, set the 'NeuroSdk_NoDependencies' property to 'true' in a PropertyGroup in your project. Make sure to satisfy the SDK's dependencies if you do so."
+                 Importance="high" Condition="@(_Duplicates) != ''" />
+
+        <!-- debugging -->
+<!--        <Warning Text="Testing @(__CrossJoin) against %(__CrossJoin.__NeuroSdkDependency):-->
+<!--A: '%(__CrossJoin.Extension)' == '.dll'-->
+<!--B: '%(__CrossJoin.Filename)' == '%(__CrossJoin.__NeuroSdkDependency)'-->
+<!--C:-->
+<!--    Expr: [System.String]::Copy('%(__CrossJoin.Identity)').Contains('.bepinex')-->
+<!--    Result: $([System.String]::Copy('%(__CrossJoin.Identity)').Contains('.bepinex'))" />-->
     </Target>
 </Project>

@@ -11,7 +11,6 @@ If you encounter any issues while using this SDK, please open an issue in this r
 ### In Unity
 
 For installing this SDK in your project, you will first need to install the following dependencies:
-- [UniTask](https://github.com/Cysharp/UniTask?tab=readme-ov-file#install-via-git-url)
 - [Native WebSockets](https://github.com/endel/NativeWebSocket?tab=readme-ov-file#install-via-upm-unity-package-manager)
 
 Afterwards, you can install the SDK in one of the following ways:
@@ -21,8 +20,6 @@ Afterwards, you can install the SDK in one of the following ways:
 ### For Modding
 
 If you would like to use the SDK in a modded Unity environment, install the `VedalAI.NeuroSdk.Unity` NuGet package.
-
-At the moment, due to the dependency on UniTask, only games built in Mono are supported. IL2CPP support is planned for the future.
 
 ## Setup
 
@@ -36,10 +33,6 @@ Drag the `NeuroSdk` prefab into whatever scene you need to use it in. Ideally, i
 ### Using Code
 
 Call `NeuroSdkSetup.Initialize` with the name of the game that you are using. This will automatically create the necessary objects and set up the SDK. This is the only option you have if you are using the NeuroSdk in a modded environment, from a NuGet package.
-
-> [!Important]  
-> If using BepInEx, this function should be called in the `Start` method of your `BaseUnityPlugin`.  
-> Calling it from `Awake` is too early and will not work.
 
 ### WebGL Additional Setup
 

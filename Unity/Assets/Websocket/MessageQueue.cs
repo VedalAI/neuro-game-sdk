@@ -1,16 +1,21 @@
 ﻿#nullable enable
 
 using System.Collections.Generic;
-using JetBrains.Annotations;
+using NeuroSdk.Il2Cpp;
+using NeuroSdk.Internal;
 using NeuroSdk.Messages.API;
 using NeuroSdk.Messages.Outgoing;
 using UnityEngine;
 
 namespace NeuroSdk.Websocket
 {
-    [PublicAPI]
+#pragma warning disable CS0618 // Type or member is obsolete
+    [RegisterInIl2Cpp]
+#pragma warning restore CS0618 // Type or member is obsolete
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class MessageQueue : MonoBehaviour
     {
+        // ReSharper disable once MemberCanBePrivate.Global
         protected readonly List<OutgoingMessageBuilder> Messages = new() { new Startup() };
 
         public virtual int Count
@@ -24,6 +29,7 @@ namespace NeuroSdk.Websocket
             }
         }
 
+        [Il2CppHide]
         public virtual void Enqueue(OutgoingMessageBuilder message)
         {
             lock (Messages)
@@ -37,6 +43,7 @@ namespace NeuroSdk.Websocket
             }
         }
 
+        [Il2CppHide]
         public virtual OutgoingMessageBuilder? Dequeue()
         {
             lock (Messages)
