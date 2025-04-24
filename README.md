@@ -10,6 +10,10 @@ Significant API and SDK changes will be documented in the [CHANGELOG.md](./CHANG
 
 Last update: 7th of January 2025, 12:20 GMT
 
+## FAQ
+
+FAQs are documented in the [FAQ.md](./FAQ.md) file. Before opening an issue, please check if your question has already been answered here.
+
 ## Contents
 
 ### API Documentation
