@@ -2,7 +2,7 @@
 
 using Newtonsoft.Json;
 
-namespace NeuroSdk.Utilities
+namespace NeuroSdk.Internal
 {
     internal static class Jason
     {

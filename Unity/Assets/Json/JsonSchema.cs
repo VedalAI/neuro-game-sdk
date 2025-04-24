@@ -1,12 +1,10 @@
 ﻿#nullable enable
 
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace NeuroSdk.Json
 {
-    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public sealed class JsonSchema
     {
         [JsonIgnore]

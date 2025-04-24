@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+<!--        <NeuroSdk_NoEmbeddedResources>true</NeuroSdk_NoEmbeddedResources>-->
+<!--        <NeuroSdk_NoDependencies>true</NeuroSdk_NoDependencies>-->
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AmongUs.GameLibs.Steam" Version="2024.10.29" />
+<!--        <PackageReference Include="CoreKeeper.GameLibs" Version="0.6.0" />-->
+        <PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1" />
+        <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.733" />
+        <PackageReference Include="VedalAI.NeuroSdk.Unity" Version="0.0.0-ci" />
+    </ItemGroup>
+
+</Project>
