@@ -21,6 +21,7 @@ func _enter_tree() -> void:
 	self.add_child(_command_handler)
 	_command_handler.name = &'CommandHandler'
 	_command_handler.register_all()
+	self.process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 func _ready() -> void:
