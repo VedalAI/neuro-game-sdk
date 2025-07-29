@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using NeuroSdk.Internal;
+
 namespace NeuroSdk.Websocket
 {
     public sealed class ExecutionResult
@@ -15,7 +17,7 @@ namespace NeuroSdk.Websocket
 
         public static ExecutionResult Success(string? message = null) => new(true, message);
         public static ExecutionResult Failure(string reason) => new(false, reason);
-        public static ExecutionResult VedalFailure(string reason) => Failure(reason + Strings.VedalFaultSuffix);
-        public static ExecutionResult ModFailure(string reason) => Failure(reason + Strings.ModFaultSuffix);
+        public static ExecutionResult VedalFailure(string reason) => Failure(reason + NeuroSdkStrings.VedalFaultSuffix);
+        public static ExecutionResult ModFailure(string reason) => Failure(reason + NeuroSdkStrings.ModFaultSuffix);
     }
 }

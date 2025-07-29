@@ -1,13 +1,11 @@
 ﻿#nullable enable
 
-using JetBrains.Annotations;
 using NeuroSdk.Messages.API;
 using NeuroSdk.Websocket;
 using Newtonsoft.Json;
 
 namespace NeuroSdk.Messages.Outgoing
 {
-    [PublicAPI]
     public sealed class Context : OutgoingMessageBuilder
     {
         public Context(string message, bool silent = false)
