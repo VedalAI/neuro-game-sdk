@@ -1,12 +1,13 @@
 ﻿#nullable enable
 
+using NeuroSdk.Json;
 using Newtonsoft.Json.Linq;
 
 namespace NeuroSdk.Messages.API
 {
-    public readonly struct MessageJData
+    public readonly struct MessageJData : IJTokenWrapper
     {
-        public readonly JToken? Data;
+        public JToken? Data { get; }
 
         public MessageJData(JToken? data)
         {

@@ -1,9 +1,9 @@
 ﻿#nullable enable
 
 using System;
-using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
 using NeuroSdk.Actions;
+using NeuroSdk.Internal;
+using NeuroSdk.Json;
 using NeuroSdk.Messages.API;
 using NeuroSdk.Messages.Outgoing;
 using NeuroSdk.Websocket;
@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace NeuroSdk.Messages.Incoming
 {
-    [UsedImplicitly]
+    // ReSharper disable once UnusedType.Global
     public sealed class Action : IncomingMessageHandler<Action.ParsedData>
     {
         public class ParsedData
@@ -31,38 +31,38 @@ namespace NeuroSdk.Messages.Incoming
             if (messageData.Data == null)
             {
                 parsedData = null;
-                return ExecutionResult.VedalFailure(Strings.ActionFailedNoData);
+                return ExecutionResult.VedalFailure(NeuroSdkStrings.ActionFailedNoData);
             }
 
-            string? id = messageData.Data["id"]?.Value<string>();
+            string? id = messageData.GetValue<string>("id");
 
             if (id is null or "")
             {
                 parsedData = null;
-                return ExecutionResult.VedalFailure(Strings.ActionFailedNoId);
+                return ExecutionResult.VedalFailure(NeuroSdkStrings.ActionFailedNoId);
             }
 
             parsedData = new ParsedData(id);
 
             try
             {
-                string? name = messageData.Data["name"]?.Value<string>();
-                string? stringifiedData = messageData.Data["data"]?.Value<string>();
+                string? name = messageData.GetValue<string>("name");
+                string? stringifiedData = messageData.GetValue<string>("data");
 
-                if (name is null or "") return ExecutionResult.VedalFailure(Strings.ActionFailedNoName);
+                if (name is null or "") return ExecutionResult.VedalFailure(NeuroSdkStrings.ActionFailedNoName);
 
                 INeuroAction? registeredAction = NeuroActionHandler.GetRegistered(name);
                 if (registeredAction == null)
                 {
                     if (NeuroActionHandler.IsRecentlyUnregistered(name))
                     {
-                        return ExecutionResult.Failure(Strings.ActionFailedUnregistered);
+                        return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedUnregistered);
                     }
-                    return ExecutionResult.Failure(Strings.ActionFailedUnknownAction.Format(name));
+                    return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedUnknownAction.Format(name));
                 }
                 parsedData.Action = registeredAction;
 
-                if (!ActionJData.TryParse(stringifiedData, out ActionJData? jData)) return ExecutionResult.Failure(Strings.ActionFailedInvalidJson);
+                if (!ActionJData.TryParse(stringifiedData, out ActionJData? jData)) return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedInvalidJson);
 
                 ExecutionResult actionValidationResult = registeredAction.Validate(jData!, out object? parsedActionData);
                 parsedData.Data = parsedActionData;
@@ -72,9 +72,9 @@ namespace NeuroSdk.Messages.Incoming
             catch (Exception e)
             {
                 Debug.LogError($"Exception caught while validating action {id}");
-                Debug.LogError(e);
+                Debug.LogError(e.ToString());
 
-                return ExecutionResult.Failure(Strings.ActionFailedCaughtException.Format(e.Message));
+                return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedCaughtException.Format(e.Message));
             }
         }
 
@@ -89,9 +89,9 @@ namespace NeuroSdk.Messages.Incoming
             WebsocketConnection.Instance!.Send(new ActionResult(parsedData.Id, result));
         }
 
-        protected override UniTask ExecuteAsync(ParsedData? parsedData)
+        protected override void Execute(ParsedData? parsedData)
         {
-            return parsedData!.Action!.ExecuteAsync(parsedData.Data!);
+            parsedData!.Action!.Execute(parsedData.Data!);
         }
     }
 }

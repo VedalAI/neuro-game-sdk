@@ -10,22 +10,19 @@
         <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
         <icon>images\icon.png</icon>
         <readme>_content/README.md</readme>
-        <releaseNotes>https://github.com/VedalAI/neuro-game-sdk/CHANGELOG.md</releaseNotes>
+        <releaseNotes>https://github.com/VedalAI/neuro-game-sdk/blob/main/CHANGELOG.md</releaseNotes>
         <description>Neuro-sama Game SDK for Unity, designed to be used for modding Mono games with BepInEx.</description>
-        <copyright>Copyright (C) Vedal AI 2024</copyright>
+        <copyright>Copyright (C) Vedal AI 2024-2025</copyright>
         <repository type="git" url="https://github.com/VedalAI/neuro-game-sdk" branch="$branch$" commit="$commit$" />
-        <dependencies>
-            <dependency id="Newtonsoft.Json" version="13.0.3" />
-        </dependencies>
     </metadata>
     <files>
         <file target="_content\" src="..\README.md" />
         <file target="images\" src="..\..\Assets\icon.png" />
 
-        <file target="_res\" src="Dependencies\*.dll" />
+        <file target="_res\" src="Resources\*.dll" />
         <file target="build\" src="VedalAI.NeuroSdk.Unity.props" />
         <file target="build\" src="VedalAI.NeuroSdk.Unity.targets" />
         <file target="contentfiles\cs\any\NeuroSdk" src="..\Assets\**\*.cs" exclude="..\Assets\Examples\**\*.cs" />
-        <file target="contentfiles\cs\any\NeuroSdk\Modding" src="Source\*.cs" />
+        <file target="contentfiles\cs\any\NeuroSdk\Modding" src="Source\**\*.cs" />
     </files>
 </package>

@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuroSdk", "NeuroSdk.csproj", "{096A9ED3-A6D6-484A-AF7E-A2587F56C29C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{4D1A8E66-D23E-49CD-B98A-7F5EB6DD9587}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,9 +12,7 @@ Global
 		{096A9ED3-A6D6-484A-AF7E-A2587F56C29C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{096A9ED3-A6D6-484A-AF7E-A2587F56C29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{096A9ED3-A6D6-484A-AF7E-A2587F56C29C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4D1A8E66-D23E-49CD-B98A-7F5EB6DD9587}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4D1A8E66-D23E-49CD-B98A-7F5EB6DD9587}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4D1A8E66-D23E-49CD-B98A-7F5EB6DD9587}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4D1A8E66-D23E-49CD-B98A-7F5EB6DD9587}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,32 @@
+name: Test Unity SDK in modded environment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8
+
+      - name: Pack NuGet package
+        shell: pwsh
+        working-directory: Unity/NuGet
+        run: ./pack.ps1 -Version "0.0.0-ci"
+
+      - name: Build test projects
+        working-directory: Unity/NuGet/Tests
+        run: dotnet build -warnaserror
