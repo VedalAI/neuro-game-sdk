@@ -2,22 +2,34 @@
 
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
+using System.Linq;
+using System.Reflection;
+using NeuroSdk.Il2Cpp;
+using NeuroSdk.Internal;
 using NeuroSdk.Messages.API;
-using NeuroSdk.Utilities;
 using UnityEngine;
 
 namespace NeuroSdk.Websocket
 {
-    [PublicAPI]
+#pragma warning disable CS0618 // Type or member is obsolete
+    [RegisterInIl2Cpp]
+#pragma warning restore CS0618 // Type or member is obsolete
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class CommandHandler : MonoBehaviour
     {
+        // ReSharper disable once MemberCanBePrivate.Global
         protected readonly List<IIncomingMessageHandler> Handlers = new();
 
         public virtual void Start()
         {
-            Handlers.AddRange(ReflectionHelpers.GetAllInDomain<IIncomingMessageHandler>(transform));
+            AddHandlersFromAssembly(Assembly.GetExecutingAssembly());
+        }
+
+        // ReSharper disable once MemberCanBeProtected.Global
+        [Il2CppHide]
+        public virtual void AddHandlersFromAssembly(Assembly assembly)
+        {
+            Handlers.AddRange(ReflectionHelpers.GetAllInAssembly<IIncomingMessageHandler>(assembly, transform).Where(h => h != null)!);
         }
 
         public virtual void Handle(string command, MessageJData data)
@@ -35,9 +47,9 @@ namespace NeuroSdk.Websocket
                 catch (Exception e)
                 {
                     Debug.LogError("Caught exception during validation at WebsocketConnection level - this is bad.");
-                    Debug.LogError(e);
+                    Debug.LogError(e.ToString());
 
-                    validationResult = ExecutionResult.Failure(Strings.MessageHandlerFailedCaughtException.Format(e.Message));
+                    validationResult = ExecutionResult.Failure(NeuroSdkStrings.MessageHandlerFailedCaughtException.Format(e.Message));
                     parsedData = null;
                 }
 
@@ -52,7 +64,7 @@ namespace NeuroSdk.Websocket
 
                 if (validationResult.Successful)
                 {
-                    handler.ExecuteAsync(parsedData).Forget();
+                    handler.Execute(parsedData);
                 }
             }
         }

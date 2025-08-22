@@ -10,13 +10,13 @@ For sending context messages, you can use the `static void Context.Send(string m
 
 In order to create a custom action, you can extend either the `NeuroAction` or `NeuroAction<T>` class. The difference is explained below.
 
-You will need to implement the `Name`, `Description` and `Schema` of the action that you are creating, as well as a `Validate` and `ExecuteAsync` method.
+You will need to implement the `Name`, `Description` and `Schema` of the action that you are creating, as well as a `Validate` and `Execute` method.
 
 The `Validate` method should validate the incoming data from json, and make sure that it's correct, and it should also perform any kind of initial verifications and finding objects. For example, in Inscryption, checking that the card that Neuro is trying to play is valid, and that there is enough bones for it, as well as finding the actual Card object and saving that as state. At the end you should return either `ExecutionResult.Success()` or `ExecutionResult.Failure(string message)`. 
 
-In order to pass state or context between the `Validate` and `ExecuteAsync` methods, you can use the `parsedData` out parameter. This will be passed to the `ExecuteAsync` method when it is called. The type of the `parsedData` parameter is the type parameter of the `NeuroAction<T>` class. If you have no context to pass, you can use the class without the generic type parameter.
+In order to pass state or context between the `Validate` and `Execute` methods, you can use the `parsedData` out parameter. This will be passed to the `Execute` method when it is called. The type of the `parsedData` parameter is the type parameter of the `NeuroAction<T>` class. If you have no context to pass, you can use the class without the generic type parameter. If your context is a value-type such as a struct or a primitive type like `int` or `bool`, you should use `NeuroActionS<T>` instead.
 
-The `ExecuteAsync` method should fully perform what Neuro requested. By this point, the action result has already been sent, so you need to try your best to execute it. If it's not possible anymore, you need to fail silently.
+The `Execute` method should fully perform what Neuro requested. By this point, the action result has already been sent, so you need to try your best to execute it. If it's not possible anymore, you need to fail silently.
 
 ### Code Sample
 
@@ -34,15 +34,10 @@ public class JudgeAction : NeuroAction<Button>
     public override string Name => "judge";
     protected override string Description => "Decide if the defendant is innocent or guilty.";
 
-    protected override JsonSchema Schema => new()
+    protected override JsonSchema Schema => QJS.WrapObject(new Dictionary<string, JsonSchema>
     {
-        Type = JsonSchemaType.Object,
-        Required = new List<string> { "verdict" },
-        Properties = new Dictionary<string, JsonSchema>
-        {
-            ["verdict"] = QJS.Enum(new string[] { "innocent", "guilty" })
-        }
-    };
+        ["verdict"] = QJS.Enum(new string[] { "innocent", "guilty" })
+    });
 
     protected override ExecutionResult Validate(ActionJData actionData, out Button? button)
     {
@@ -69,10 +64,9 @@ public class JudgeAction : NeuroAction<Button>
         }
     }
 
-    protected override UniTask ExecuteAsync(Button? button)
+    protected override void Execute(Button? button)
     {
         Button.Press();
-        return UniTask.CompletedTask;
     }
 }
 ```
@@ -210,7 +204,7 @@ alt Success
     SDK ->> API: actions/unregister
     SDK ->> API: action/result
     deactivate API
-    SDK ->> Game: NeuroAction.ExecuteAsync(...)
+    SDK ->> Game: NeuroAction.Execute(...)
 else Failure
     activate API
     Game ->> SDK: return ExecutionResult.Failure(...)

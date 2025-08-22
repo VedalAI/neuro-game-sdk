@@ -3,10 +3,9 @@
   "displayName": "Neuro SDK",
   "description": "Neuro SDK for Unity",
   "author": "Vedal AI",
-  "version": "1.2.1",
+  "version": "2.0.0-pre.4-dev.2",
   "unity": "2022.3",
   "dependencies": {
-    "com.cysharp.unitask": "2.5.10",
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.endel.nativewebsocket": "1.1.4",
     "com.unity.modules.unitywebrequest": "1.0.0"

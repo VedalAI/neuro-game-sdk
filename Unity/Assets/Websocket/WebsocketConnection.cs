@@ -1,31 +1,35 @@
 ﻿#nullable enable
 
 using System;
+using System.Collections;
 using System.Text;
-using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
+using System.Threading.Tasks;
 using NativeWebSocket;
+using NeuroSdk.Il2Cpp;
+using NeuroSdk.Internal;
 using NeuroSdk.Messages.API;
-using NeuroSdk.Utilities;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Networking;
-using UnityEngine.Serialization;
 
 namespace NeuroSdk.Websocket
 {
-    [PublicAPI]
+#pragma warning disable CS0618 // Type or member is obsolete
+    [RegisterInIl2Cpp]
+#pragma warning restore CS0618 // Type or member is obsolete
     public sealed class WebsocketConnection : MonoBehaviour
     {
         private const float RECONNECT_INTERVAL = 3;
+
+        private static bool _checkingSelf;
 
         private static WebsocketConnection? _instance;
         public static WebsocketConnection? Instance
         {
             get
             {
-                if (!_instance) Debug.LogWarning("Accessed WebsocketConnection.Instance without an instance being present");
+                if (!_instance && !_checkingSelf) Debug.LogWarning("Accessed WebsocketConnection.Instance without an instance being present");
+                _checkingSelf = false;
                 return _instance;
             }
             private set => _instance = value;
@@ -33,7 +37,7 @@ namespace NeuroSdk.Websocket
 
         private static WebSocket? _socket;
 
-        public string game = null!;
+        public string game = "";
         public MessageQueue messageQueue = null!;
         public CommandHandler commandHandler = null!;
 
@@ -43,6 +47,7 @@ namespace NeuroSdk.Websocket
 
         private void Awake()
         {
+            _checkingSelf = true;
             if (Instance)
             {
                 Debug.Log("Destroying duplicate WebsocketConnection instance");
@@ -52,22 +57,28 @@ namespace NeuroSdk.Websocket
 
             DontDestroyOnLoad(gameObject);
             Instance = this;
+
+            Debug.Log("NeuroSdk WebsocketConnection is now awake");
         }
 
-        private void Start() => StartWs().Forget();
+        // ReSharper disable once ArrangeThisQualifier -- Il2Cpp has this as an extension method
+        private void Start() => this.StartCoroutine(StartWs());
 
-        private async UniTask Reconnect()
+        [Il2CppHide]
+        private IEnumerator Reconnect()
         {
-            await UniTask.SwitchToMainThread();
-            await UniTask.Delay(TimeSpan.FromSeconds(RECONNECT_INTERVAL));
-            await StartWs();
+            yield return new WaitForSecondsRealtime(RECONNECT_INTERVAL);
+            yield return StartWs();
         }
 
-        private async UniTask StartWs()
+        [Il2CppHide]
+        private IEnumerator StartWs()
         {
+            if (MainThreadUtil.Instance == null) MainThreadUtil.Setup();
+
             try
             {
-                if (_socket?.State is WebSocketState.Open or WebSocketState.Connecting) await _socket.Close();
+                if (_socket?.State is WebSocketState.Open or WebSocketState.Connecting) _ = _socket.Close();
             }
             catch
             {
@@ -75,50 +86,7 @@ namespace NeuroSdk.Websocket
             }
 
             string? websocketUrl = null;
-
-            if (Application.absoluteURL.IndexOf("?", StringComparison.Ordinal) != -1)
-            {
-                string[] urlSplits = Application.absoluteURL.Split('?');
-                if (urlSplits.Length > 1)
-                {
-                    string[] urlParamSplits = urlSplits[1].Split(new[] { "WebSocketURL=" }, StringSplitOptions.None);
-                    if (urlParamSplits.Length > 1)
-                    {
-                        string? param = urlParamSplits[1].Split('&')[0];
-                        if (!string.IsNullOrEmpty(param))
-                        {
-                            websocketUrl = param;
-                        }
-                    }
-                }
-            }
-
-            if (websocketUrl is null or "")
-            {
-                try
-                {
-                    Uri uri = new(Application.absoluteURL);
-                    string requestUrl = $"{uri.Scheme}://{uri.Host}:{uri.Port}/$env/NEURO_SDK_WS_URL";
-                    UnityWebRequest request = UnityWebRequest.Get(requestUrl);
-
-                    await request.SendWebRequest();
-                    if (TryGetResult(request, out string result))
-                    {
-                        websocketUrl = result;
-                    }
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-
-            if (websocketUrl is null or "")
-            {
-                websocketUrl = Environment.GetEnvironmentVariable("NEURO_SDK_WS_URL", EnvironmentVariableTarget.Process) ??
-                               Environment.GetEnvironmentVariable("NEURO_SDK_WS_URL", EnvironmentVariableTarget.User) ??
-                               Environment.GetEnvironmentVariable("NEURO_SDK_WS_URL", EnvironmentVariableTarget.Machine);
-            }
+            yield return WsUrlFinder.FindWsUrl(result => websocketUrl = result);
 
             if (websocketUrl is null or "")
             {
@@ -130,33 +98,65 @@ namespace NeuroSdk.Websocket
                 errMessage += " You need to specify a WebSocketURL query parameter in the URL or open a local server that serves the NEURO_SDK_WS_URL environment variable. See the documentation for more information.";
 #endif
                 Debug.LogError(errMessage);
-                return;
+                yield break;
             }
 
             // Websocket callbacks get run on separate threads! Watch out
             _socket = new WebSocket(websocketUrl);
-            _socket.OnOpen += () => onConnected?.Invoke();
+            _socket.OnOpen += () =>
+            {
+                // ReSharper disable once ArrangeThisQualifier -- Il2Cpp has this as an extension method
+                this.StartCoroutine(coroutine());
+                return;
+
+                IEnumerator coroutine()
+                {
+                    yield return null;
+                    onConnected?.Invoke();
+                }
+            };
             _socket.OnMessage += bytes =>
             {
                 string message = Encoding.UTF8.GetString(bytes);
-                ReceiveMessage(message).Forget();
+                // ReSharper disable once ArrangeThisQualifier -- Il2Cpp has this as an extension method
+                this.StartCoroutine(ReceiveMessage(message));
             };
             _socket.OnError += error =>
             {
-                onError?.Invoke(error);
-                if (error != "Unable to connect to the remote server")
+                // ReSharper disable once ArrangeThisQualifier -- Il2Cpp has this as an extension method
+                this.StartCoroutine(coroutine());
+                return;
+
+                IEnumerator coroutine()
                 {
-                    Debug.LogError("Websocket connection has encountered an error!");
-                    Debug.LogError(error);
+                    yield return null;
+
+                    onError?.Invoke(error);
+                    if (error != "Unable to connect to the remote server")
+                    {
+                        Debug.LogError("Websocket connection has encountered an error!");
+                        Debug.LogError(error);
+                    }
                 }
             };
             _socket.OnClose += code =>
             {
-                onDisconnected?.Invoke(code);
-                if (code != WebSocketCloseCode.Abnormal) Debug.LogWarning($"Websocket connection has been closed with code {code}!");
-                Reconnect().Forget();
+                // ReSharper disable once ArrangeThisQualifier -- Il2Cpp has this as an extension method
+                this.StartCoroutine(coroutine());
+                return;
+
+                IEnumerator coroutine()
+                {
+                    yield return null;
+
+                    onDisconnected?.Invoke(code);
+                    if (code != WebSocketCloseCode.Abnormal) Debug.LogWarning($"Websocket connection has been closed with code {code}!");
+                    // ReSharper disable once ArrangeThisQualifier -- Il2Cpp has this as an extension method
+                    this.StartCoroutine(Reconnect());
+                }
             };
-            await _socket.Connect();
+
+            _ = _socket.Connect();
         }
 
         private void Update()
@@ -166,7 +166,8 @@ namespace NeuroSdk.Websocket
             while (messageQueue.Count > 0)
             {
                 OutgoingMessageBuilder builder = messageQueue.Dequeue()!;
-                SendTask(builder).Forget();
+                // ReSharper disable once ArrangeThisQualifier -- Il2Cpp has this as an extension method
+                this.StartCoroutine(SendTask(builder));
             }
 
 #if !UNITY_WEBGL || UNITY_EDITOR
@@ -174,25 +175,28 @@ namespace NeuroSdk.Websocket
 #endif
         }
 
-        private async UniTask SendTask(OutgoingMessageBuilder builder)
+        [Il2CppHide]
+        private IEnumerator SendTask(OutgoingMessageBuilder builder)
         {
             string message = Jason.Serialize(builder.GetWsMessage());
 
             Debug.Log($"Sending ws message {message}");
 
-            try
-            {
-                await _socket!.SendText(message);
-            }
-            catch
+            Task task = _socket!.SendText(message);
+            // ReSharper disable once RedundantDelegateCreation
+            yield return new WaitUntil(new Func<bool>(() => task.IsCompleted));
+
+            if (task.IsCanceled || task.IsFaulted)
             {
                 Debug.LogError($"Failed to send ws message {message}");
                 messageQueue.Enqueue(builder);
             }
         }
 
+        [Il2CppHide]
         public void Send(OutgoingMessageBuilder messageBuilder) => messageQueue.Enqueue(messageBuilder);
 
+        [Il2CppHide]
         public void SendImmediate(OutgoingMessageBuilder messageBuilder)
         {
             string message = Jason.Serialize(messageBuilder.GetWsMessage());
@@ -208,35 +212,13 @@ namespace NeuroSdk.Websocket
             _socket.SendText(message);
         }
 
-        [Obsolete("Use WebsocketConnection.Instance.Send instead")]
-        public static void TrySend(OutgoingMessageBuilder messageBuilder)
+        [Il2CppHide]
+        private IEnumerator ReceiveMessage(string msgData)
         {
-            if (Instance == null)
-            {
-                Debug.LogError("Cannot send message - WebsocketConnection instance is null");
-                return;
-            }
+            yield return null;
 
-            Instance.Send(messageBuilder);
-        }
-
-        [Obsolete("Use WebsocketConnection.Instance.SendImmediate instead")]
-        public static void TrySendImmediate(OutgoingMessageBuilder messageBuilder)
-        {
-            if (Instance == null)
-            {
-                Debug.LogError("Cannot send immediate message - WebsocketConnection instance is null");
-                return;
-            }
-
-            Instance.SendImmediate(messageBuilder);
-        }
-
-        private async UniTask ReceiveMessage(string msgData)
-        {
             try
             {
-                await UniTask.SwitchToMainThread();
 
                 Debug.Log("Received ws message " + msgData);
 
@@ -246,8 +228,8 @@ namespace NeuroSdk.Websocket
 
                 if (command == null)
                 {
-                    Debug.LogError("Received command that could not be deserialized. What the fuck are you doing?");
-                    return;
+                    Debug.LogError("Received command that could not be deserialized. Wtf are you doing?");
+                    yield break;
                 }
 
                 commandHandler.Handle(command, data);
@@ -255,22 +237,8 @@ namespace NeuroSdk.Websocket
             catch (Exception e)
             {
                 Debug.LogError("Received invalid message");
-                Debug.LogError(e);
+                Debug.LogError(e.ToString());
             }
-        }
-
-        private bool TryGetResult(UnityWebRequest request, out string result)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (request is { isDone: true, isHttpError: false, isNetworkError: false })
-#pragma warning restore CS0618 // Type or member is obsolete
-            {
-                result = request.downloadHandler.text;
-                return true;
-            }
-
-            result = "";
-            return false;
         }
     }
 }

@@ -7,13 +7,13 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace NeuroSdk.Resources
+namespace NeuroSdk.Internal
 {
     internal static class ResourceManager
     {
         internal static void InjectAssemblies()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (_, args) => GetAssembly(new AssemblyName(args.Name).Name);
+            AppDomain.CurrentDomain.AssemblyResolve += (_, args) => GetAssembly(new AssemblyName(args.Name).Name!);
         }
 
         private static readonly Assembly _assembly = Assembly.GetExecutingAssembly();
@@ -46,7 +46,7 @@ namespace NeuroSdk.Resources
 
         private static bool TryGetCached<T>(string name, out T? value) where T : class
         {
-            if (!_cache.TryGetValue(name, out object cachedObject))
+            if (!_cache.TryGetValue(name, out object? cachedObject))
             {
                 value = null;
                 return false;

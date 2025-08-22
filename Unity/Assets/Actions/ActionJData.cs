@@ -1,8 +1,7 @@
 ﻿#nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
-using JetBrains.Annotations;
+using NeuroSdk.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -11,8 +10,7 @@ namespace NeuroSdk.Actions
     /// <summary>
     /// A wrapper class for the data of an <see cref="NeuroSdk.Messages.Incoming.Action"/> message.
     /// </summary>
-    [PublicAPI]
-    public sealed class ActionJData
+    public sealed class ActionJData : IJTokenWrapper
     {
         public JToken? Data { get; private set; }
 
@@ -42,7 +40,7 @@ namespace NeuroSdk.Actions
             catch (Exception e)
             {
                 Debug.LogError("Failed to deserialize ActionJData from string.");
-                Debug.LogError(e);
+                Debug.LogError(e.ToString());
                 actionJData = null;
                 return false;
             }

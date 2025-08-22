@@ -1,6 +1,6 @@
 name: Update Godot SDK on Godot Asset Library
 
-on: 
+on:
   push:
     branches:
       - main
@@ -17,10 +17,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Create archive
-        run: |
-          cd Godot
-          zip -r NeuroSdk.zip addons neuro_sdk_config.gd
-      
+        working-directory: Godot
+        run: zip -r NeuroSdk.zip addons neuro_sdk_config.gd
+
       - name: Upload to release
         uses: svenstaro/upload-release-action@v2
         with:
@@ -28,7 +27,7 @@ jobs:
           tag: godot
           overwrite: true
           make_latest: false
-      
+
       #- name: Update Godot Asset Library metadata
       #  uses: deep-entertainment/godot-asset-lib-action@v0.4.0
       #  with:

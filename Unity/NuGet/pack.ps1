@@ -1,16 +1,22 @@
+param (
+    [string]$Version
+)
+
 $PackageJsonPath = "../Assets/package.json"
 
-if (-Not (Test-Path $PackageJsonPath)) {
-    Write-Error "package.json not found at path: $PackageJsonPath"
-    exit 1
-}
-
-$PackageJsonContent = Get-Content -Path $PackageJsonPath -Raw | ConvertFrom-Json
-$Version = $PackageJsonContent.version
-
 if (-Not $Version) {
-    Write-Error "Version not found in package.json"
-    exit 1
+    if (-Not (Test-Path $PackageJsonPath)) {
+        Write-Error "package.json not found at path: $PackageJsonPath"
+        exit 1
+    }
+
+    $PackageJsonContent = Get-Content -Path $PackageJsonPath -Raw | ConvertFrom-Json
+    $Version = $PackageJsonContent.version
+
+    if (-Not $Version) {
+        Write-Error "Version not found in package.json"
+        exit 1
+    }
 }
 
 $PackNuspecProps = @{

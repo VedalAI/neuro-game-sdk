@@ -6,13 +6,13 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace NeuroSdk.Utilities
+namespace NeuroSdk.Internal
 {
     internal static class ReflectionHelpers
     {
-        public static IEnumerable<T> GetAllInDomain<T>(Transform parent)
+        public static IEnumerable<T?> GetAllInAssembly<T>(Assembly assembly, Transform parent)
         {
-            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(asm => asm.GetTypes())
+            IEnumerable<Type> types = assembly.GetTypes()
                 .Where(type => !type.IsAbstract)
                 .Where(type => typeof(T).IsAssignableFrom(type));
 
@@ -20,17 +20,17 @@ namespace NeuroSdk.Utilities
             {
                 if (type.GetMethod("CreateInstance", BindingFlags.Static | BindingFlags.Public) is { } method)
                 {
-                    yield return (T) method.Invoke(null, null);
+                    yield return (T?) method.Invoke(null, null);
                 }
                 else if (typeof(Component).IsAssignableFrom(type))
                 {
                     GameObject obj = new(type.FullName);
                     obj.transform.SetParent(parent);
-                    yield return (T) (object) obj.AddComponent(type);
+                    yield return (T?) (object) obj.AddComponent(type);
                 }
                 else
                 {
-                    yield return (T) Activator.CreateInstance(type);
+                    yield return (T?) Activator.CreateInstance(type);
                 }
             }
         }

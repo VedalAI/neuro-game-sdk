@@ -22,15 +22,15 @@
     <!-- debug = check in IDE that it compiles without errors -->
     <ItemGroup Condition="'$(Configuration)' == 'Debug'">
         <PackageReference Include="UnityEngine.Modules" Version="2019.4.24" />
-        <Reference Include="Dependencies/endel.nativewebsocket.dll" />
-        <Reference Include="Dependencies/UniTask.dll" />
-        <Compile Include="..\Assets\**\*.cs" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <Compile Include="..\Assets\**\*.cs" LinkBase="NeuroSdk" />
         <Compile Remove="..\Assets\Examples\*.cs" />
+        <None Include="..\Assets\package.json" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-        <Compile Remove="Example\**\*" />
-        <Folder Remove="Example\**\*" />
+        <Compile Remove="Tests\**" />
+        <Folder Remove="Tests\**" />
+        <None Remove="Tests\**" />
     </ItemGroup>
 </Project>

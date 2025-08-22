@@ -1,6 +1,6 @@
 name: Publish Unity SDK on NuGet
 
-on: [workflow_dispatch]
+on: [ workflow_dispatch ]
 
 jobs:
   publish:
@@ -17,12 +17,11 @@ jobs:
 
       - name: Pack NuGet package
         shell: pwsh
-        run: |
-          cd Unity/NuGet
-          ./pack.ps1
+        working-directory: Unity/NuGet
+        run: ./pack.ps1
 
       - name: Push NuGet package
         uses: edumserrano/nuget-push@v1.2.2
-        with: 
+        with:
           api-key: ${{ secrets.NUGET_API_KEY }}
           working-directory: Unity/NuGet/bin/Release

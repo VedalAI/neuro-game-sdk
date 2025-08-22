@@ -1,12 +1,12 @@
-﻿using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
+﻿#nullable enable
+
 using NeuroSdk.Actions;
 using NeuroSdk.Messages.API;
 using NeuroSdk.Websocket;
 
 namespace NeuroSdk.Messages.Incoming
 {
-    [UsedImplicitly]
+    // ReSharper disable once UnusedType.Global
     public sealed class ActionsReregisterAll : IncomingMessageHandler
     {
         public override bool CanHandle(string command) => command == "actions/reregister_all";
@@ -17,10 +17,9 @@ namespace NeuroSdk.Messages.Incoming
         {
         }
 
-        protected override UniTask ExecuteAsync()
+        protected override void Execute()
         {
             NeuroActionHandler.ResendRegisteredActions();
-            return UniTask.CompletedTask;
         }
     }
 }
